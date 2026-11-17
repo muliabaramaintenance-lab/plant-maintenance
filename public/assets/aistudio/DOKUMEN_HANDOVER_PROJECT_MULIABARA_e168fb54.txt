@@ -1,0 +1,31 @@
+DOKUMEN HANDOVER PROJECT: MULIABARA PLANT & MAINTENANCE SYSTEM
+1. Ringkasan Proyek
+Nama Sistem: Muliabara Plant & Maintenance System
+Tanggal Handover: 17 November 2026
+Tema & Branding: Biru Tua Dominan (#19325d), Hijau Saga (#7ab547 / #82c341), Putih (#ffffff), dilengkapi Logo SVG Muliabara pada Header dan Portal Login.
+Arsitektur: Single-Page Web Application (Responsif PC & Mobile) menggunakan HTML5, Tailwind CSS, Chart.js v4.4.1, dan Supabase JS SDK v2 (dengan mekanisme Hybrid Fallback otomatis ke localStorage + In-Memory Backup jika belum dihubungkan ke Supabase).
+2. Daftar Fitur & Hak Akses (Role-Based Access)
+Role	ID Demo	Password	Fitur Utama
+Pengawas	PGW01	123	• 4 Panel Grafik Eksekutif: Physical Availability (PA %), Tren Fuel (L) & Output KWH, Distribusi Aktivitas, & Service Interval Health Monitor.
+• Laporan Otomatis: Filter Harian, Mingguan, Bulanan, Semua Data, Export CSV (UTF-8 BOM Excel-ready), & Cetak/PDF.
+• Manajemen Unit: Tambah, Edit, Hapus, Toggle cepat Ready / Tidak Ready, Last Service, Next Service, & Remarks.
+• Kelola Akun: Tambah & Hapus akun Operator/Logistic dengan fitur Auto ID & Password.
+Operator Mekanik	MEK01	123	• 2 Pilihan Kategori Unit: Genset & Alat Berat.
+• Mode Genset: Aktivitas (P2H, Perawatan Harian, Service Berkala, Perbaikan / Trouble), input HM, KWH, Fuel (Liter), & detail pekerjaan.
+• Mode Alat Berat: Kolom KWH otomatis disembunyikan (tidak perlu KWH), aktivitas tanpa P2H, input HM, Fuel (Liter).
+• Tanggal & waktu otomatis + opsi pembaruan otomatis Last Service.
+Operator Elektrik	ELK01	123	• Kategori Elektrik: AC, Lampu, Unit, & Komponen Lainnya.
+• Tindakan: Maintenance, Diperbaiki, Dilepas, & Dipasang.
+• Tanggal & waktu otomatis, lokasi/nama komponen, & detail pekerjaan.
+Logistic	LOG01	123	• Jenis Transaksi: Pengambilan Barang (Keluar) & Barang Masuk.
+• Tanggal & waktu otomatis, nama pengambil/pengirim, multi-baris barang & quantity (minimal 1 baris dijaga).
+• Upload Bukti Foto (mendukung kamera HP langsung, kompresi otomatis, simpan ke Supabase Storage / fallback Base64, & modal zoom).
+3. Daftar Perbaikan Bug (Quality Assurance Passed)
+Seluruh potensi kegagalan berikut sudah diperbaiki di kode final:
+try ... finally pada semua proses Async: Tombol Submit/Login tidak akan pernah macet (stuck disabled) jika koneksi internet terputus saat kirim data ke Supabase.
+Proteksi Sandbox Storage (safeGetStorage / safeSetStorage): Aman dari error SecurityError atau QuotaExceededError di browser maupun preview iframe.
+Proteksi XSS (escapeHtml): Seluruh input pengguna disanitasi sebelum dirender ke tabel HTML.
+Validasi Logistic: Mencegah penghapusan seluruh baris barang dan memvalidasi tipe file gambar (image/*) sebelum kompresi <canvas>.
+Validasi Unit Kosong & Alat Berat: Mekanik tidak bisa mengirim laporan jika kategori belum memiliki unit; Alat Berat menyimpan kwh = null dan tampil - di tabel maupun CSV.
+Chart.js Clean Re-render: Instance grafik lama selalu di-destroy() sebelum menggambar ulang agar tidak bertumpuk saat ganti periode/tab.
+Excel UTF-8 BOM (\uFEFF): File Export CSV terbaca rapi di Microsoft Excel.

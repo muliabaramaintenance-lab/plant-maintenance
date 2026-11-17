@@ -1,0 +1,6 @@
+{
+  "name": "Muliabara Plant & Maintenance",
+  "description": "Sistem Manajemen Operasional Plant, Maintenance Unit Genset & Alat Berat, Elektrik, dan Logistik Terpadu Muliabara.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

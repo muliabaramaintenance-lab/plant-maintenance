@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muliabara Plant & Maintenance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: #f3f6f9; }
+    .bg-navy { background-color: #19325d; }
+    .bg-navy-dark { background-color: #122547; }
+    .text-navy { color: #19325d; }
+    .bg-saga { background-color: #7ab547; }
+    .bg-saga-soft { background-color: #edf6e6; }
+    .text-saga { color: #5d9132; }
+    @media print { .no-print { display: none !important; } body { background: white !important; } .print-break { page-break-inside: avoid; } }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="bg-navy text-white shadow-lg sticky top-0 z-40 no-print border-b-4 border-[#82c341]">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-3">
+        <svg viewBox="0 0 120 74" class="h-8 sm:h-9 w-auto shrink-0" aria-label="Logo Muliabara">
+          <path d="M2 54 L43 3 L43 42 L15 71 L2 71 Z" fill="#82c341"/>
+          <path d="M50 3 L67 3 C71 3 73 6 73 10 L73 27 L104 3 L117 3 L117 21 L69 71 L50 71 Z" fill="#82c341"/>
+          <path d="M117 33 L117 61 C117 67 112 71 106 71 L80 71 Z" fill="#ffffff"/>
+        </svg>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg sm:text-xl leading-none tracking-tight text-white">
+              Mul<span class="relative inline-block">ı<span class="absolute left-1/2 -translate-x-1/2 top-[2px] w-[5px] h-[5px] rounded-full bg-[#82c341]"></span></span>abara
+            </h1>
+            <span id="dbModeBadge" class="hidden sm:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-[#a5dc6b] border border-white/15">● Mode Demo Lokal</span>
+          </div>
+          <p class="text-[11px] text-[#a5dc6b] font-medium mt-0.5">Plant &amp; Maintenance System</p>
+        </div>
+      </div>
+      <div id="userHeaderInfo" class="hidden flex items-center gap-2 sm:gap-3">
+        <div class="text-right">
+          <p id="headerUserName" class="text-xs sm:text-sm font-semibold leading-tight text-white"></p>
+          <p id="headerUserRole" class="text-[11px] sm:text-xs text-[#b8df91]"></p>
+        </div>
+        <button onclick="logout()" class="bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition shrink-0">Keluar</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+
+    <!-- LOGIN VIEW -->
+    <section id="loginView" class="space-y-8">
+      <div class="text-center max-w-2xl mx-auto pt-3">
+        <div class="inline-flex items-center justify-center bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-200 mb-4 gap-3">
+          <svg viewBox="0 0 120 74" class="h-9 w-auto" aria-label="Muliabara Mark">
+            <path d="M2 54 L43 3 L43 42 L15 71 L2 71 Z" fill="#19325d"/>
+            <path d="M50 3 L67 3 C71 3 73 6 73 10 L73 27 L104 3 L117 3 L117 21 L69 71 L50 71 Z" fill="#19325d"/>
+            <path d="M117 33 L117 61 C117 67 112 71 106 71 L80 71 Z" fill="#82c341"/>
+          </svg>
+          <div class="text-left border-l border-slate-200 pl-3">
+            <p class="text-sm font-extrabold text-navy leading-tight">MULIABARA</p>
+            <p class="text-[11px] font-semibold text-saga">Plant &amp; Maintenance</p>
+          </div>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-navy">Pilih Akses Masuk</h2>
+        <p class="text-slate-600 text-sm sm:text-base mt-2">Pilih divisi Anda untuk pelaporan operasional, perawatan unit, atau manajemen logistik.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+        <button onclick="selectRolePortal('pengawas')" class="text-left bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-[#7ab547] hover:shadow-xl transition group">
+          <div class="w-12 h-12 rounded-xl bg-navy text-[#82c341] flex items-center justify-center mb-4 font-extrabold text-lg">P</div>
+          <h3 class="text-lg font-bold text-navy">Pengawas</h3>
+          <p class="text-sm text-slate-600 mt-1">Dashboard grafik manajemen, laporan harian/mingguan/bulanan, unit Genset &amp; Alat Berat, dan kelola ID Operator.</p>
+        </button>
+        <button onclick="selectRolePortal('operator')" class="text-left bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-[#7ab547] hover:shadow-xl transition group">
+          <div class="w-12 h-12 rounded-xl bg-saga text-white flex items-center justify-center mb-4 font-extrabold text-lg">O</div>
+          <h3 class="text-lg font-bold text-navy">Operator Mekanik &amp; Elektrik</h3>
+          <p class="text-sm text-slate-600 mt-1">Mekanik (Genset P2H/HM/KWH/Fuel &amp; Alat Berat HM/Fuel) serta Elektrik (AC, Lampu, Unit &amp; Komponen Lainnya).</p>
+        </button>
+        <button onclick="selectRolePortal('logistic')" class="text-left bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-[#7ab547] hover:shadow-xl transition group">
+          <div class="w-12 h-12 rounded-xl bg-navy-dark text-[#82c341] border-2 border-[#82c341] flex items-center justify-center mb-4 font-extrabold text-lg">L</div>
+          <h3 class="text-lg font-bold text-navy">Logistic</h3>
+          <p class="text-sm text-slate-600 mt-1">Pencatatan pengambilan barang &amp; barang masuk otomatis tanggal/waktu, pengambil, quantity, dan bukti foto.</p>
+        </button>
+      </div>
+
+      <div id="loginBox" class="hidden max-w-md mx-auto bg-white p-6 rounded-2xl shadow-lg border border-slate-200">
+        <div class="flex items-center justify-between mb-4">
+          <h3 id="loginBoxTitle" class="text-lg font-bold text-navy">Masuk</h3>
+          <span id="loginPortalBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-saga-soft text-saga"></span>
+        </div>
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User ID</label>
+            <input type="text" id="loginId" required placeholder="Masukkan ID dari Pengawas" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#7ab547] outline-none text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label>
+            <input type="password" id="loginPassword" required placeholder="Masukkan Password" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:ring-2 focus:ring-[#7ab547] outline-none text-sm" />
+          </div>
+          <p id="loginError" class="hidden text-xs text-red-600 font-medium"></p>
+          <button type="submit" id="loginSubmitBtn" class="w-full bg-navy hover:bg-navy-dark text-white font-semibold py-2.5 rounded-lg transition shadow">Masuk ke Sistem</button>
+        </form>
+        <div class="mt-5 pt-4 border-t border-slate-100">
+          <p class="text-xs font-semibold text-slate-500 mb-2">Akses Uji Coba Cepat:</p>
+          <div id="demoButtonsContainer" class="flex flex-wrap gap-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PENGAWAS VIEW -->
+    <section id="pengawasView" class="hidden space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 no-print">
+        <div class="flex flex-wrap gap-2">
+          <button onclick="switchPengawasTab('laporan')" id="tabBtn-laporan" class="pengawas-tab px-4 py-2 rounded-lg text-sm font-semibold bg-navy text-white transition">Executive Dashboard &amp; Laporan</button>
+          <button onclick="switchPengawasTab('unit')" id="tabBtn-unit" class="pengawas-tab px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Genset &amp; Alat Berat</button>
+          <button onclick="switchPengawasTab('users')" id="tabBtn-users" class="pengawas-tab px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition">Kelola ID Operator &amp; Logistic</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="refreshFromCloud()" class="text-xs font-semibold bg-saga-soft text-saga hover:bg-[#dff0d2] px-3 py-1.5 rounded-lg transition">↻ Segarkan Data</button>
+          <button id="resetDemoBtn" onclick="resetDemoData()" class="text-xs font-semibold text-slate-500 hover:text-navy px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 transition">Reset Demo</button>
+        </div>
+      </div>
+
+      <!-- TAB 1: ANALYTICS & LAPORAN -->
+      <div id="pengawasTab-laporan" class="space-y-6">
+        <div class="bg-navy text-white p-4 sm:p-5 rounded-2xl shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-4 no-print">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold uppercase text-[#82c341] mr-1">Periode Analitik:</span>
+            <button onclick="setReportPeriod('harian')" id="periodBtn-harian" class="period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white/10 text-white">Harian</button>
+            <button onclick="setReportPeriod('mingguan')" id="periodBtn-mingguan" class="period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-saga text-white">Mingguan</button>
+            <button onclick="setReportPeriod('bulanan')" id="periodBtn-bulanan" class="period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white/10 text-white">Bulanan</button>
+            <button onclick="setReportPeriod('semua')" id="periodBtn-semua" class="period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white/10 text-white">Semua Data</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="date" id="reportRefDate" onchange="renderPengawasDashboard()" class="px-3 py-1.5 rounded-lg border border-white/20 bg-navy-dark text-white text-sm" />
+            <button onclick="exportReportCSV()" class="bg-saga hover:bg-[#699e3b] text-white text-sm font-semibold px-3.5 py-1.5 rounded-lg transition">Export CSV / Excel</button>
+            <button onclick="window.print()" class="bg-white text-navy hover:bg-slate-100 text-sm font-semibold px-3.5 py-1.5 rounded-lg transition">Cetak / PDF</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-saga"></div>
+            <p class="text-[11px] font-bold text-slate-500 uppercase">Physical Availability</p>
+            <div class="flex items-baseline gap-2 mt-1"><p id="kpiPaPercent" class="text-2xl font-extrabold text-saga">0%</p><span id="kpiUnitReady" class="text-xs font-semibold text-slate-500">(0/0)</span></div>
+            <p id="kpiUnitBreakdown" class="text-xs text-red-500 font-medium mt-1">0 Tidak Ready</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-navy"></div>
+            <p class="text-[11px] font-bold text-slate-500 uppercase">Total Konsumsi Fuel</p>
+            <p id="kpiTotalFuel" class="text-2xl font-extrabold text-navy mt-1">0 L</p>
+            <p class="text-xs text-slate-500 mt-1">Akumulasi periode</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-[#82c341]"></div>
+            <p class="text-[11px] font-bold text-slate-500 uppercase">Total Output KWH</p>
+            <p id="kpiTotalKwh" class="text-2xl font-extrabold text-navy mt-1">0</p>
+            <p class="text-xs text-slate-500 mt-1">Produksi Genset</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-sky-600"></div>
+            <p class="text-[11px] font-bold text-slate-500 uppercase">Aktivitas Maintenance</p>
+            <p id="kpiTotalMaint" class="text-2xl font-extrabold text-sky-700 mt-1">0</p>
+            <p class="text-xs text-slate-500 mt-1">Mekanik &amp; Elektrik</p>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm relative overflow-hidden col-span-2 lg:col-span-1">
+            <div class="absolute top-0 left-0 w-1.5 h-full bg-amber-500"></div>
+            <p class="text-[11px] font-bold text-slate-500 uppercase">Alert Service Due</p>
+            <p id="kpiServiceAlert" class="text-2xl font-extrabold text-amber-600 mt-1">0 Unit</p>
+            <p id="kpiTotalLogisticText" class="text-xs text-slate-500 mt-1">0 Transaksi Logistic</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div class="lg:col-span-8 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div><h3 class="font-bold text-navy">Analisis Konsumsi Fuel (Liter) &amp; Produksi KWH</h3><p id="fuelChartSubtitle" class="text-xs text-slate-500"></p></div>
+              <span id="periodLabelText" class="text-xs font-bold px-2.5 py-1 rounded-full bg-saga-soft text-saga"></span>
+            </div>
+            <div class="relative h-64 sm:h-72"><canvas id="fuelKwhChart"></canvas></div>
+          </div>
+          <div class="lg:col-span-4 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break flex flex-col justify-between">
+            <div><h3 class="font-bold text-navy">Kesiapan Armada &amp; Genset</h3><p class="text-xs text-slate-500">Rasio Unit Ready vs Tidak Ready (PA)</p></div>
+            <div class="relative h-52 my-2 flex items-center justify-center">
+              <canvas id="readinessChart"></canvas>
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                <span id="centerPaValue" class="text-2xl font-extrabold text-navy">0%</span>
+                <span class="text-[10px] font-bold uppercase text-slate-400">Availability</span>
+              </div>
+            </div>
+            <div id="readinessBreakdownList" class="grid grid-cols-2 gap-2 pt-3 border-t border-slate-100 text-xs"></div>
+          </div>
+          <div class="lg:col-span-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+            <div class="mb-4"><h3 class="font-bold text-navy">Distribusi Aktivitas Maintenance &amp; Logistik</h3><p class="text-xs text-slate-500">Komposisi P2H, Perawatan, Service, Trouble, Elektrik &amp; Logistic</p></div>
+            <div class="relative h-64"><canvas id="activityChart"></canvas></div>
+          </div>
+          <div class="lg:col-span-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <div><h3 class="font-bold text-navy">Service Interval Health Monitor</h3><p class="text-xs text-slate-500">Monitoring jarak HM menuju jadwal Next Service</p></div>
+              <span class="text-[11px] font-semibold bg-saga-soft text-saga px-2.5 py-1 rounded-lg">Auto-Tracking</span>
+            </div>
+            <div id="serviceHealthBars" class="space-y-3 overflow-y-auto max-h-64 pr-1"></div>
+          </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+          <h3 class="font-bold text-navy mb-3">Status Management Service Unit (Genset &amp; Alat Berat)</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Unit / Genset</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Status</th><th class="px-3 py-2.5">HM Saat Ini</th><th class="px-3 py-2.5">Last Service</th><th class="px-3 py-2.5">Next Service</th><th class="px-3 py-2.5">Remarks</th></tr></thead><tbody id="pengawasServiceSummaryTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+          <h3 class="font-bold text-navy mb-3">Laporan Operator Mekanik</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Operator</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Unit</th><th class="px-3 py-2.5">Aktivitas</th><th class="px-3 py-2.5">HM</th><th class="px-3 py-2.5">KWH</th><th class="px-3 py-2.5">Fuel (L)</th><th class="px-3 py-2.5">Perawatan / Service</th></tr></thead><tbody id="pengawasMekanikTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+          <h3 class="font-bold text-navy mb-3">Laporan Operator Elektrik (AC, Lampu, Unit &amp; Komponen Lainnya)</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Operator</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Lokasi / Unit / Komponen</th><th class="px-3 py-2.5">Tindakan</th><th class="px-3 py-2.5">Detail Pekerjaan</th></tr></thead><tbody id="pengawasElektrikTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 print-break">
+          <h3 class="font-bold text-navy mb-3">Laporan Logistic (Barang Masuk &amp; Pengambilan Barang)</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Tipe</th><th class="px-3 py-2.5">Petugas Logistic</th><th class="px-3 py-2.5">Pengambil / Sumber</th><th class="px-3 py-2.5">Barang &amp; Quantity</th><th class="px-3 py-2.5">Bukti Foto</th></tr></thead><tbody id="pengawasLogisticTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- TAB 2: MANAJEMEN UNIT -->
+      <div id="pengawasTab-unit" class="hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h3 id="unitFormTitle" class="font-bold text-navy text-lg mb-4">Tambah Genset / Unit Alat Berat Baru</h3>
+          <form onsubmit="saveUnit(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <input type="hidden" id="editUnitId" />
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama / Kode Unit</label><input type="text" id="unitName" required placeholder="cth: Genset CAT 500kVA #1" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori</label><select id="unitCategory" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"><option value="Genset">Genset</option><option value="Alat Berat">Alat Berat</option></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Kesiapan</label><select id="unitStatus" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"><option value="Ready">Ready</option><option value="Tidak Ready">Tidak Ready</option></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">HM Saat Ini</label><input type="number" step="0.1" id="unitCurrentHm" required placeholder="cth: 1250" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Last Service</label><input type="text" id="unitLastService" required placeholder="cth: HM 1200" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Next Service</label><input type="text" id="unitNextService" required placeholder="cth: HM 1450" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div class="sm:col-span-2"><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Remarks</label><input type="text" id="unitRemarks" placeholder="Catatan kondisi unit" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div class="sm:col-span-2 lg:col-span-4 flex gap-2">
+              <button type="submit" id="saveUnitBtn" class="bg-navy hover:bg-navy-dark text-white font-semibold px-5 py-2 rounded-lg text-sm transition">Simpan Unit</button>
+              <button type="button" onclick="resetUnitForm()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg text-sm transition">Batal / Reset</button>
+            </div>
+          </form>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h3 class="font-bold text-navy mb-3">Daftar Genset &amp; Alat Berat</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Unit</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Status</th><th class="px-3 py-2.5">HM</th><th class="px-3 py-2.5">Last Service</th><th class="px-3 py-2.5">Next Service</th><th class="px-3 py-2.5">Remarks</th><th class="px-3 py-2.5 text-right">Aksi</th></tr></thead><tbody id="manageUnitTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: KELOLA USER -->
+      <div id="pengawasTab-users" class="hidden space-y-6">
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h3 class="font-bold text-navy text-lg mb-4">Tambah Akun Operator &amp; Logistic</h3>
+          <form onsubmit="addUserAccount(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Lengkap</label><input type="text" id="newUserName" required placeholder="cth: Budi Santoso" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Divisi</label><select id="newUserRole" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white"><option value="Operator Mekanik">Operator Mekanik</option><option value="Operator Elektrik">Operator Elektrik (AC/Lampu/Unit)</option><option value="Logistic">Logistic</option><option value="Pengawas">Pengawas</option></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">User ID</label><div class="flex gap-1"><input type="text" id="newUserId" required placeholder="MEK02" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /><button type="button" onclick="generateCredentials()" class="bg-saga-soft hover:bg-[#d9ebc9] text-saga font-semibold px-2.5 rounded-lg text-xs whitespace-nowrap">Auto ID</button></div></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Password</label><input type="text" id="newUserPass" required placeholder="123456" class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm" /></div>
+            <div class="sm:col-span-2 lg:col-span-4"><button type="submit" id="addUserBtn" class="bg-navy hover:bg-navy-dark text-white font-semibold px-5 py-2 rounded-lg text-sm transition">Buat Akun &amp; Berikan ID/Password</button></div>
+          </form>
+        </div>
+        <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+          <h3 class="font-bold text-navy mb-3">Daftar Akun Terdaftar</h3>
+          <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Nama</th><th class="px-3 py-2.5">Divisi</th><th class="px-3 py-2.5">User ID</th><th class="px-3 py-2.5">Password</th><th class="px-3 py-2.5 text-right">Aksi</th></tr></thead><tbody id="manageUsersTable" class="divide-y divide-slate-100"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OPERATOR MEKANIK VIEW -->
+    <section id="mekanikView" class="hidden space-y-6">
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-100">
+          <div><h2 class="text-xl font-bold text-navy">Input Laporan Operator Mekanik</h2><p class="text-xs text-slate-500">Pilih Genset (P2H, HM, KWH, Fuel) atau Alat Berat (HM, Fuel tanpa KWH).</p></div>
+          <span class="live-clock text-xs font-semibold bg-saga-soft text-saga px-3 py-1.5 rounded-lg self-start"></span>
+        </div>
+        <form onsubmit="submitMekanikReport(event)" class="space-y-5">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-2">1. Pilih Kategori Unit</label>
+            <div class="grid grid-cols-2 gap-3 max-w-md">
+              <button type="button" id="btnCatGenset" onclick="setMekCategory('Genset')" class="py-3 px-4 rounded-xl border-2 font-bold text-sm transition bg-navy text-[#82c341] border-navy shadow">⚡ Genset</button>
+              <button type="button" id="btnCatAlatBerat" onclick="setMekCategory('Alat Berat')" class="py-3 px-4 rounded-xl border-2 font-bold text-sm transition bg-white text-slate-700 border-slate-300">🚜 Alat Berat</button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div><label id="mekUnitLabel" class="block text-xs font-semibold text-slate-600 uppercase mb-1">2. Pilih Unit Genset</label><select id="mekUnitSelect" required class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm bg-white"></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">3. Jenis Aktivitas</label><select id="mekJenis" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm bg-white"></select></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">HM (Hour Meter)</label><input type="number" step="0.1" id="mekHm" required placeholder="cth: 1255.5" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" /></div>
+            <div id="mekKwhWrapper"><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">KWH</label><input type="number" step="0.1" id="mekKwh" required placeholder="cth: 450" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" /></div>
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Fuel (Liter)</label><input type="number" step="0.1" id="mekFuel" required placeholder="cth: 120" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" /></div>
+            <div class="flex items-end pb-2"><label class="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" id="mekUpdateLastService" class="w-4 h-4 rounded accent-[#7ab547]" /><span>Perbarui <strong>Last Service</strong> unit otomatis</span></label></div>
+            <div class="sm:col-span-2 lg:col-span-3"><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Apa Saja yang Sudah Dilakukan</label><textarea id="mekDetail" rows="3" required placeholder="Rincian P2H / Perawatan Harian / Service..." class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm"></textarea></div>
+            <div class="sm:col-span-2 lg:col-span-3"><button type="submit" id="mekSubmitBtn" class="w-full sm:w-auto bg-navy hover:bg-navy-dark text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition">Kirim Laporan Mekanik</button></div>
+          </div>
+        </form>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="font-bold text-navy mb-3">Riwayat Laporan Mekanik</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Unit</th><th class="px-3 py-2.5">Aktivitas</th><th class="px-3 py-2.5">HM / KWH / Fuel</th><th class="px-3 py-2.5">Pekerjaan Dilakukan</th></tr></thead><tbody id="mekHistoryTable" class="divide-y divide-slate-100"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- OPERATOR ELEKTRIK VIEW -->
+    <section id="elektrikView" class="hidden space-y-6">
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-100">
+          <div><h2 class="text-xl font-bold text-navy">Input Laporan Operator Elektrik</h2><p class="text-xs text-slate-500">AC, Lampu, Unit, atau Komponen Lainnya (Maintenance, Diperbaiki, Dilepas, Dipasang).</p></div>
+          <span class="live-clock text-xs font-semibold bg-saga-soft text-saga px-3 py-1.5 rounded-lg self-start"></span>
+        </div>
+        <form onsubmit="submitElektrikReport(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori Elektrik</label><select id="elkCategory" onchange="updateElektrikPlaceholder()" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm bg-white font-semibold"><option value="AC">AC</option><option value="Lampu">Lampu</option><option value="Unit">Unit (Genset / Alat Berat)</option><option value="Komponen Lainnya">Komponen Lainnya</option></select></div>
+          <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Lokasi / Nama Unit / Komponen</label><input type="text" id="elkUnit" required class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" /></div>
+          <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Kategori Tindakan</label><select id="elkAction" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm bg-white"><option value="Maintenance">Maintenance</option><option value="Diperbaiki">Diperbaiki</option><option value="Dilepas">Dilepas</option><option value="Dipasang">Dipasang</option></select></div>
+          <div class="sm:col-span-3"><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Detail Pekerjaan</label><textarea id="elkDetail" rows="3" required placeholder="Detail pekerjaan yang dilakukan..." class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm"></textarea></div>
+          <div class="sm:col-span-3"><button type="submit" id="elkSubmitBtn" class="w-full sm:w-auto bg-navy hover:bg-navy-dark text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition">Kirim Laporan Elektrik</button></div>
+        </form>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="font-bold text-navy mb-3">Riwayat Laporan Elektrik</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Kategori</th><th class="px-3 py-2.5">Lokasi / Komponen</th><th class="px-3 py-2.5">Tindakan</th><th class="px-3 py-2.5">Detail Pekerjaan</th></tr></thead><tbody id="elkHistoryTable" class="divide-y divide-slate-100"></tbody></table></div>
+      </div>
+    </section>
+
+    <!-- LOGISTIC VIEW -->
+    <section id="logisticView" class="hidden space-y-6">
+      <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5 pb-4 border-b border-slate-100">
+          <div><h2 class="text-xl font-bold text-navy">Input Transaksi Logistic</h2><p class="text-xs text-slate-500">Tanggal &amp; waktu otomatis. Input nama pengambil/pengirim, barang, quantity, &amp; bukti foto.</p></div>
+          <span class="live-clock text-xs font-semibold bg-saga-soft text-saga px-3 py-1.5 rounded-lg self-start"></span>
+        </div>
+        <form onsubmit="submitLogisticReport(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Jenis Transaksi</label><select id="logType" onchange="toggleLogisticLabel()" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm font-semibold bg-white"><option value="Pengambilan Barang">Pengambilan Barang (Keluar)</option><option value="Barang Masuk">Barang Masuk</option></select></div>
+            <div><label id="logPersonLabel" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Nama Pengambil Barang</label><input type="text" id="logPerson" required placeholder="cth: Ahmad (Mekanik)" class="w-full px-3 py-2.5 rounded-lg border border-slate-300 text-sm" /></div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-bold text-navy uppercase">Daftar Barang &amp; Quantity</label>
+              <button type="button" onclick="addLogisticItemRow()" class="text-xs font-semibold bg-navy text-white px-3 py-1.5 rounded-lg hover:bg-navy-dark">+ Tambah Baris</button>
+            </div>
+            <div id="logisticItemsContainer" class="space-y-2"></div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Bukti Foto (Kamera / Galeri)</label>
+            <input type="file" id="logPhotoInput" accept="image/*" capture="environment" onchange="previewLogisticPhoto(event)" class="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-saga file:text-white cursor-pointer" />
+            <div id="logPhotoPreviewWrap" class="hidden mt-3"><img id="logPhotoPreview" alt="Preview" class="h-36 rounded-lg border border-slate-300 object-cover" /></div>
+          </div>
+          <div><button type="submit" id="logSubmitBtn" class="w-full sm:w-auto bg-saga hover:bg-[#699e3b] text-white font-semibold px-6 py-2.5 rounded-lg text-sm transition">Simpan Transaksi Logistic</button></div>
+        </form>
+      </div>
+      <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
+        <h3 class="font-bold text-navy mb-3">Riwayat Barang Masuk &amp; Pengambilan Barang</h3>
+        <div class="overflow-x-auto"><table class="w-full text-sm text-left"><thead class="bg-slate-50 text-navy uppercase text-xs"><tr><th class="px-3 py-2.5">Tanggal &amp; Waktu</th><th class="px-3 py-2.5">Jenis</th><th class="px-3 py-2.5">Pengambil / Sumber</th><th class="px-3 py-2.5">Barang &amp; Quantity</th><th class="px-3 py-2.5">Bukti Foto</th></tr></thead><tbody id="logHistoryTable" class="divide-y divide-slate-100"></tbody></table></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="photoModal" onclick="closePhotoModal()" class="hidden fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4">
+    <div class="bg-white p-3 rounded-2xl max-w-lg w-full" onclick="event.stopPropagation()">
+      <img id="modalPhotoImg" src="" alt="Bukti Foto" class="w-full rounded-xl max-h-[75vh] object-contain" />
+      <div class="mt-3 flex justify-between items-center"><span id="modalPhotoCaption" class="text-xs text-slate-600 font-medium"></span><button onclick="closePhotoModal()" class="bg-navy text-white text-xs font-semibold px-4 py-2 rounded-lg">Tutup</button></div>
+    </div>
+  </div>
+  <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-navy text-white border-l-4 border-[#82c341] text-sm font-semibold px-4 py-3 rounded-xl shadow-xl"></div>
+
+  <script>
+    // ==================== KONFIGURASI SUPABASE ====================
+    const SUPABASE_URL = 'ISI_URL_SUPABASE_ANDA';
+    const SUPABASE_ANON_KEY = 'ISI_ANON_KEY_ANDA';
+
+    const isSupabaseConfigured =
+      SUPABASE_URL.startsWith('https://') && !SUPABASE_URL.includes('ISI_URL') &&
+      SUPABASE_ANON_KEY.length > 20 && !SUPABASE_ANON_KEY.includes('ISI_ANON') &&
+      typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function';
+
+    const sbClient = isSupabaseConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    // ==================== SAFE STORAGE & STATE ====================
+    const DB_KEY = 'muliabara_plant_db_v2';
+    let memoryBackup = null;
+    const safeGet = k => { try { return window.localStorage.getItem(k); } catch { return memoryBackup; } };
+    const safeSet = (k, v) => { memoryBackup = v; try { window.localStorage.setItem(k, v); } catch {} };
+
+    let db = { users: [], units: [], mekanikLogs: [], elektrikLogs: [], logisticLogs: [] };
+    let charts = { fuelKwh: null, readiness: null, activity: null };
+    let currentUser = null, selectedPortal = null, currentReportPeriod = 'mingguan';
+    let currentPhotoBase64 = '', currentPhotoBlob = null, selectedMekCategory = 'Genset';
+
+    const getTodayISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const isoDaysAgo = (d, h = 10) => { const x = new Date(); x.setDate(x.getDate() - d); x.setHours(h, 15, 0, 0); return x.toISOString(); };
+    const fmtDT = iso => new Date(iso).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const fmtShort = iso => new Date(iso).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+    const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    const isElk = r => r === 'Operator Elektrik' || r === 'Operator Elektrik AC';
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3200);
+    }
+
+    function buildSeedData() {
+      return {
+        users: [
+          { id: 'PGW01', password: '123', name: 'Pak Hendra (Pengawas)', role: 'Pengawas' },
+          { id: 'MEK01', password: '123', name: 'Budi (Mekanik)', role: 'Operator Mekanik' },
+          { id: 'ELK01', password: '123', name: 'Rizal (Elektrik)', role: 'Operator Elektrik' },
+          { id: 'LOG01', password: '123', name: 'Sari (Logistic)', role: 'Logistic' }
+        ],
+        units: [
+          { id: 'U1', name: 'Genset Perkins 500 kVA #01', category: 'Genset', status: 'Ready', currentHm: 2475, lastService: 'HM 2250', nextService: 'HM 2500', remarks: 'Operasional normal' },
+          { id: 'U2', name: 'Genset CAT 350 kVA #02', category: 'Genset', status: 'Ready', currentHm: 1840, lastService: 'HM 1750', nextService: 'HM 2000', remarks: 'Standby plant utama' },
+          { id: 'U3', name: 'Excavator Komatsu PC200 #03', category: 'Alat Berat', status: 'Ready', currentHm: 4180, lastService: 'HM 4000', nextService: 'HM 4250', remarks: 'Siap operasi area pit' },
+          { id: 'U4', name: 'Dump Truck Hino 500 #02', category: 'Alat Berat', status: 'Tidak Ready', currentHm: 6995, lastService: 'HM 6750', nextService: 'HM 7000', remarks: 'Perbaikan hose hidrolik' }
+        ],
+        mekanikLogs: [
+          { id: 'M1', timestamp: isoDaysAgo(4, 9), operatorName: 'Budi (Mekanik)', unitId: 'U1', unitCategory: 'Genset', unitName: 'Genset Perkins 500 kVA #01', jenis: 'P2H', hm: 2420, kwh: 980, fuel: 165, detail: 'P2H rutin pagi, cek tegangan baterai & level radiator.' },
+          { id: 'M2', timestamp: isoDaysAgo(3, 14), operatorName: 'Budi (Mekanik)', unitId: 'U3', unitCategory: 'Alat Berat', unitName: 'Excavator Komatsu PC200 #03', jenis: 'Perawatan Harian', hm: 4145, kwh: null, fuel: 210, detail: 'Greasing pin bucket, cek oli hidrolik.' },
+          { id: 'M3', timestamp: isoDaysAgo(2, 10), operatorName: 'Budi (Mekanik)', unitId: 'U2', unitCategory: 'Genset', unitName: 'Genset CAT 350 kVA #02', jenis: 'Service Berkala', hm: 1820, kwh: 890, fuel: 140, detail: 'Ganti filter oli, filter solar, & filter udara.' },
+          { id: 'M4', timestamp: isoDaysAgo(1, 11), operatorName: 'Budi (Mekanik)', unitId: 'U4', unitCategory: 'Alat Berat', unitName: 'Dump Truck Hino 500 #02', jenis: 'Perbaikan / Trouble', hm: 6995, kwh: null, fuel: 120, detail: 'Penanganan kebocoran hose hidrolik dump.' },
+          { id: 'M5', timestamp: isoDaysAgo(0, 8), operatorName: 'Budi (Mekanik)', unitId: 'U1', unitCategory: 'Genset', unitName: 'Genset Perkins 500 kVA #01', jenis: 'P2H', hm: 2475, kwh: 1120, fuel: 185, detail: 'P2H genset: cek oli mesin, water separator, tambah air radiator.' },
+          { id: 'M6', timestamp: isoDaysAgo(0, 9), operatorName: 'Budi (Mekanik)', unitId: 'U3', unitCategory: 'Alat Berat', unitName: 'Excavator Komatsu PC200 #03', jenis: 'Perawatan Harian', hm: 4180, kwh: null, fuel: 230, detail: 'Cek fuel, bersihkan cabin filter, greasing joint.' }
+        ],
+        elektrikLogs: [
+          { id: 'E1', timestamp: isoDaysAgo(2, 13), operatorName: 'Rizal (Elektrik)', category: 'Lampu', unitAc: 'Lampu Sorot Menara Pit #1', action: 'Dipasang', detail: 'Pemasangan lampu sorot LED 150W baru.' },
+          { id: 'E2', timestamp: isoDaysAgo(1, 15), operatorName: 'Rizal (Elektrik)', category: 'Unit', unitAc: 'Alternator Genset CAT #02', action: 'Diperbaiki', detail: 'Pengencangan terminal AVR & soket sensor.' },
+          { id: 'E3', timestamp: isoDaysAgo(0, 9), operatorName: 'Rizal (Elektrik)', category: 'AC', unitAc: 'AC Ruang Control Room', action: 'Maintenance', detail: 'Cuci indoor/outdoor unit, tekanan freon normal.' }
+        ],
+        logisticLogs: [
+          { id: 'L1', timestamp: isoDaysAgo(1, 10), petugas: 'Sari (Logistic)', type: 'Barang Masuk', person: 'PT Mitra Sparepart', items: [{ name: 'Filter Oli Perkins', qty: '10 Pcs' }, { name: 'Lampu Sorot LED 150W', qty: '4 Unit' }], photo: '' },
+          { id: 'L2', timestamp: isoDaysAgo(0, 10), petugas: 'Sari (Logistic)', type: 'Pengambilan Barang', person: 'Budi (Mekanik)', items: [{ name: 'Filter Oli Perkins', qty: '2 Pcs' }, { name: 'Oli Mesin SAE 15W-40', qty: '20 Liter' }], photo: '' }
+        ]
+      };
+    }
+
+    function saveLocalDB() { safeSet(DB_KEY, JSON.stringify(db)); }
+
+    async function loadAllData() {
+      const badge = document.getElementById('dbModeBadge');
+      if (isSupabaseConfigured) {
+        badge.textContent = '● Cloud: Supabase';
+        document.getElementById('resetDemoBtn').classList.add('hidden');
+        try {
+          const [u, un, m, e, l] = await Promise.all([
+            sbClient.from('app_users').select('*').order('created_at'),
+            sbClient.from('units').select('*').order('created_at'),
+            sbClient.from('mekanik_logs').select('*').order('timestamp'),
+            sbClient.from('elektrik_logs').select('*').order('timestamp'),
+            sbClient.from('logistic_logs').select('*').order('timestamp')
+          ]);
+          if (u.error) throw u.error;
+          db.users = u.data || [];
+          db.units = (un.data || []).map(x => ({ id: x.id, name: x.name, category: x.category, status: x.status, currentHm: Number(x.current_hm), lastService: x.last_service, nextService: x.next_service, remarks: x.remarks || '' }));
+          db.mekanikLogs = (m.data || []).map(x => ({ id: x.id, timestamp: x.timestamp, operatorName: x.operator_name, unitId: x.unit_id, unitCategory: x.unit_category, unitName: x.unit_name, jenis: x.jenis, hm: Number(x.hm), kwh: x.kwh === null ? null : Number(x.kwh), fuel: Number(x.fuel), detail: x.detail }));
+          db.elektrikLogs = (e.data || []).map(x => ({ id: x.id, timestamp: x.timestamp, operatorName: x.operator_name, category: x.category, unitAc: x.target_name, action: x.action, detail: x.detail }));
+          db.logisticLogs = (l.data || []).map(x => ({ id: x.id, timestamp: x.timestamp, petugas: x.petugas, type: x.type, person: x.person, items: x.items || [], photo: x.photo || '' }));
+        } catch (err) {
+          console.error(err);
+          showToast('Gagal mengambil data dari Supabase.');
+        }
+      } else {
+        badge.textContent = '● Mode Demo Lokal';
+        const raw = safeGet(DB_KEY);
+        if (raw) { try { db = JSON.parse(raw); } catch { db = buildSeedData(); } }
+        else { db = buildSeedData(); saveLocalDB(); }
+      }
+    }
+
+    async function refreshFromCloud() {
+      await loadAllData();
+      if (currentUser && currentUser.role === 'Pengawas') { renderPengawasDashboard(); renderManageUnits(); renderManageUsers(); }
+      showToast('Data berhasil disegarkan.');
+    }
+
+    function resetDemoData() {
+      if (isSupabaseConfigured || !confirm('Reset semua data ke data contoh awal?')) return;
+      db = buildSeedData(); saveLocalDB();
+      renderPengawasDashboard(); renderManageUnits(); renderManageUsers();
+      showToast('Data demo berhasil dimuat ulang.');
+    }
+
+    setInterval(() => {
+      const s = 'Otomatis: ' + new Date().toLocaleString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.querySelectorAll('.live-clock').forEach(el => el.textContent = s);
+    }, 1000);
+
+    function selectRolePortal(portal) {
+      selectedPortal = portal;
+      document.getElementById('loginError').classList.add('hidden');
+      document.getElementById('loginId').value = '';
+      document.getElementById('loginPassword').value = '';
+      document.getElementById('loginBox').classList.remove('hidden');
+      const dc = document.getElementById('demoButtonsContainer');
+      dc.innerHTML = '';
+      const addDemo = (id, pass, lbl) => {
+        const b = document.createElement('button'); b.type = 'button';
+        b.className = 'text-xs bg-saga-soft hover:bg-[#d9ebc9] text-saga border border-[#b7dba0] px-2.5 py-1.5 rounded-lg font-semibold';
+        b.textContent = lbl;
+        b.onclick = () => { document.getElementById('loginId').value = id; document.getElementById('loginPassword').value = pass; };
+        dc.appendChild(b);
+      };
+      if (portal === 'pengawas') {
+        document.getElementById('loginBoxTitle').textContent = 'Login Pengawas';
+        document.getElementById('loginPortalBadge').textContent = 'Pengawas';
+        addDemo('PGW01', '123', 'Demo Pengawas (PGW01)');
+      } else if (portal === 'operator') {
+        document.getElementById('loginBoxTitle').textContent = 'Login Operator Mekanik / Elektrik';
+        document.getElementById('loginPortalBadge').textContent = 'Operator';
+        addDemo('MEK01', '123', 'Demo Mekanik (MEK01)');
+        addDemo('ELK01', '123', 'Demo Elektrik (ELK01)');
+      } else {
+        document.getElementById('loginBoxTitle').textContent = 'Login Logistic';
+        document.getElementById('loginPortalBadge').textContent = 'Logistic';
+        addDemo('LOG01', '123', 'Demo Logistic (LOG01)');
+      }
+      document.getElementById('loginBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginSubmitBtn');
+      const errEl = document.getElementById('loginError');
+      errEl.classList.add('hidden');
+      btn.disabled = true; btn.textContent = 'Memeriksa akun...';
+      try {
+        await loadAllData();
+        const idIn = document.getElementById('loginId').value.trim().toUpperCase();
+        const passIn = document.getElementById('loginPassword').value.trim();
+        const user = db.users.find(u => u.id.toUpperCase() === idIn && u.password === passIn);
+        if (!user) { errEl.textContent = 'ID atau Password salah. Hubungi Pengawas.'; errEl.classList.remove('hidden'); return; }
+        if (selectedPortal === 'pengawas' && user.role !== 'Pengawas') { errEl.textContent = 'Akun ini bukan akun Pengawas.'; errEl.classList.remove('hidden'); return; }
+        if (selectedPortal === 'operator' && user.role !== 'Operator Mekanik' && !isElk(user.role)) { errEl.textContent = 'Akun ini bukan akun Operator.'; errEl.classList.remove('hidden'); return; }
+        if (selectedPortal === 'logistic' && user.role !== 'Logistic') { errEl.textContent = 'Akun ini bukan akun Logistic.'; errEl.classList.remove('hidden'); return; }
+        currentUser = user;
+        enterDashboard();
+      } finally {
+        btn.disabled = false; btn.textContent = 'Masuk ke Sistem';
+      }
+    }
+
+    function enterDashboard() {
+      document.getElementById('loginView').classList.add('hidden');
+      document.getElementById('userHeaderInfo').classList.remove('hidden');
+      document.getElementById('headerUserName').textContent = currentUser.name;
+      document.getElementById('headerUserRole').textContent = `${currentUser.role} (${currentUser.id})`;
+      ['pengawasView', 'mekanikView', 'elektrikView', 'logisticView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      if (currentUser.role === 'Pengawas') {
+        document.getElementById('pengawasView').classList.remove('hidden');
+        document.getElementById('reportRefDate').value = getTodayISO();
+        setReportPeriod('mingguan'); renderManageUnits(); renderManageUsers();
+      } else if (currentUser.role === 'Operator Mekanik') {
+        document.getElementById('mekanikView').classList.remove('hidden');
+        setMekCategory('Genset'); renderMekanikHistory();
+      } else if (isElk(currentUser.role)) {
+        document.getElementById('elektrikView').classList.remove('hidden');
+        updateElektrikPlaceholder(); renderElektrikHistory();
+      } else if (currentUser.role === 'Logistic') {
+        document.getElementById('logisticView').classList.remove('hidden');
+        resetLogisticItems(); renderLogisticHistory();
+      }
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('userHeaderInfo').classList.add('hidden');
+      ['pengawasView', 'mekanikView', 'elektrikView', 'logisticView'].forEach(id => document.getElementById(id).classList.add('hidden'));
+      document.getElementById('loginView').classList.remove('hidden');
+      document.getElementById('loginId').value = ''; document.getElementById('loginPassword').value = '';
+    }
+
+    function switchPengawasTab(tab) {
+      ['laporan', 'unit', 'users'].forEach(t => {
+        document.getElementById('pengawasTab-' + t).classList.toggle('hidden', t !== tab);
+        document.getElementById('tabBtn-' + t).className = t === tab
+          ? 'pengawas-tab px-4 py-2 rounded-lg text-sm font-semibold bg-navy text-white transition'
+          : 'pengawas-tab px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:bg-slate-100 transition';
+      });
+      if (tab === 'laporan') renderPengawasDashboard();
+    }
+
+    function setReportPeriod(period) {
+      currentReportPeriod = period;
+      document.querySelectorAll('.period-btn').forEach(b => b.className = 'period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-white/10 text-white hover:bg-white/20');
+      document.getElementById('periodBtn-' + period).className = 'period-btn px-3.5 py-1.5 rounded-lg text-sm font-semibold bg-saga text-white shadow';
+      renderPengawasDashboard();
+    }
+
+    function isInPeriod(iso) {
+      if (currentReportPeriod === 'semua') return true;
+      const refInput = document.getElementById('reportRefDate');
+      if (!refInput.value) refInput.value = getTodayISO();
+      const refVal = refInput.value;
+      const refDate = new Date(refVal + 'T23:59:59');
+      const d = new Date(iso);
+      if (currentReportPeriod === 'harian') {
+        return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0] === refVal;
+      }
+      if (currentReportPeriod === 'mingguan') {
+        const s = new Date(refDate); s.setDate(s.getDate() - 6); s.setHours(0, 0, 0, 0);
+        return d >= s && d <= refDate;
+      }
+      return d.getFullYear() === refDate.getFullYear() && d.getMonth() === refDate.getMonth();
+    }
+
+    const getCat = m => m.unitCategory || (db.units.find(x => x.id === m.unitId)?.category || '-');
+    const fmtKwh = m => (getCat(m) === 'Alat Berat' || m.kwh == null || m.kwh === '') ? '-' : esc(m.kwh);
+    const extractHm = s => { const m = String(s || '').match(/(\d+(?:\.\d+)?)/g); return m ? Number(m[m.length - 1]) : null; };
+
+    function renderPengawasCharts(mekF, elkF, logF) {
+      if (typeof Chart === 'undefined') return;
+      const ctxF = document.getElementById('fuelKwhChart').getContext('2d');
+      if (charts.fuelKwh) charts.fuelKwh.destroy();
+      let labels = [], fuelD = [], kwhD = [];
+      if (currentReportPeriod === 'harian') {
+        document.getElementById('fuelChartSubtitle').textContent = 'Pemakaian Fuel & Output KWH per Unit (Hari Terpilih)';
+        const map = {};
+        mekF.forEach(m => {
+          const k = m.unitName || 'Unit';
+          if (!map[k]) map[k] = { f: 0, k: 0 };
+          map[k].f += Number(m.fuel || 0);
+          if (getCat(m) === 'Genset') map[k].k += Number(m.kwh || 0);
+        });
+        labels = Object.keys(map).map(n => n.length > 20 ? n.slice(0, 18) + '..' : n);
+        fuelD = Object.values(map).map(v => v.f); kwhD = Object.values(map).map(v => v.k);
+      } else {
+        document.getElementById('fuelChartSubtitle').textContent = 'Tren Harian Konsumsi Fuel (Liter) vs Output KWH Genset';
+        const map = {};
+        mekF.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)).forEach(m => {
+          const d = new Date(m.timestamp);
+          const day = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+          if (!map[day]) map[day] = { l: fmtShort(m.timestamp), f: 0, k: 0 };
+          map[day].f += Number(m.fuel || 0);
+          if (getCat(m) === 'Genset') map[day].k += Number(m.kwh || 0);
+        });
+        const keys = Object.keys(map).sort();
+        labels = keys.map(k => map[k].l); fuelD = keys.map(k => map[k].f); kwhD = keys.map(k => map[k].k);
+      }
+      if (!labels.length) { labels = ['Belum ada data']; fuelD = [0]; kwhD = [0]; }
+      charts.fuelKwh = new Chart(ctxF, {
+        data: { labels, datasets: [
+          { type: 'bar', label: 'Fuel (Liter)', data: fuelD, backgroundColor: 'rgba(25,50,93,0.88)', borderRadius: 6, yAxisID: 'y' },
+          { type: 'line', label: 'Output KWH (Genset)', data: kwhD, borderColor: '#7ab547', backgroundColor: 'rgba(130,195,65,0.16)', borderWidth: 3, tension: 0.3, fill: true, yAxisID: 'y1' }
+        ]},
+        options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'Fuel (L)' } }, y1: { position: 'right', beginAtZero: true, title: { display: true, text: 'KWH' }, grid: { drawOnChartArea: false } } } }
+      });
+
+      const rdy = db.units.filter(u => u.status === 'Ready').length, nr = db.units.length - rdy;
+      const pa = db.units.length ? Math.round((rdy / db.units.length) * 100) : 0;
+      document.getElementById('centerPaValue').textContent = pa + '%';
+      document.getElementById('readinessBreakdownList').innerHTML = `
+        <div class="bg-slate-50 p-2 rounded-lg"><span class="text-slate-500 block">Genset Ready</span><strong class="text-navy">${db.units.filter(u => u.category==='Genset'&&u.status==='Ready').length} / ${db.units.filter(u => u.category==='Genset').length} Unit</strong></div>
+        <div class="bg-slate-50 p-2 rounded-lg"><span class="text-slate-500 block">Alat Berat Ready</span><strong class="text-navy">${db.units.filter(u => u.category==='Alat Berat'&&u.status==='Ready').length} / ${db.units.filter(u => u.category==='Alat Berat').length} Unit</strong></div>`;
+      const ctxR = document.getElementById('readinessChart').getContext('2d');
+      if (charts.readiness) charts.readiness.destroy();
+      charts.readiness = new Chart(ctxR, {
+        type: 'doughnut', data: { labels: ['Ready', 'Tidak Ready'], datasets: [{ data: [rdy, nr], backgroundColor: ['#7ab547', '#ef4444'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '72%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } } }
+      });
+
+      const ctxA = document.getElementById('activityChart').getContext('2d');
+      if (charts.activity) charts.activity.destroy();
+      charts.activity = new Chart(ctxA, {
+        type: 'bar',
+        data: {
+          labels: ['P2H Genset', 'Perawatan Harian', 'Service Berkala', 'Trouble / Perbaikan', 'Elektrik', 'Logistic'],
+          datasets: [{ data: [mekF.filter(m=>m.jenis==='P2H').length, mekF.filter(m=>m.jenis==='Perawatan Harian').length, mekF.filter(m=>m.jenis==='Service Berkala').length, mekF.filter(m=>m.jenis==='Perbaikan / Trouble').length, elkF.length, logF.length], backgroundColor: ['#7ab547', '#19325d', '#3b82f6', '#ef4444', '#0ea5e9', '#64748b'], borderRadius: 6 }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { grid: { display: false } } } }
+      });
+    }
+
+    function renderServiceHealthMonitor() {
+      const box = document.getElementById('serviceHealthBars');
+      let alerts = 0;
+      if (!db.units.length) { box.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">Belum ada unit.</p>'; document.getElementById('kpiServiceAlert').textContent = '0 Unit'; return; }
+      box.innerHTML = db.units.map(u => {
+        const lHm = extractHm(u.lastService), nHm = extractHm(u.nextService), cHm = Number(u.currentHm || 0);
+        let pct = 50, rem = 'Jadwal: ' + esc(u.nextService), st = { t: 'Normal', c: 'bg-saga-soft text-saga', b: 'bg-saga' };
+        if (nHm && lHm !== null && nHm > lHm) {
+          pct = Math.max(0, Math.min(100, Math.round(((cHm - lHm) / (nHm - lHm)) * 100)));
+          const sisa = Math.round((nHm - cHm) * 10) / 10;
+          rem = sisa <= 0 ? `Lewat ${Math.abs(sisa)} HM` : `Sisa ${sisa} HM lagi`;
+          if (pct >= 100 || sisa <= 0) { alerts++; st = { t: 'Segera Service', c: 'bg-red-100 text-red-700', b: 'bg-red-500' }; }
+          else if (pct >= 80) { alerts++; st = { t: 'Mendekati Service', c: 'bg-amber-100 text-amber-800', b: 'bg-amber-500' }; }
+        } else if (nHm && cHm >= nHm) { alerts++; pct = 100; rem = 'Mencapai target HM'; st = { t: 'Segera Service', c: 'bg-red-100 text-red-700', b: 'bg-red-500' }; }
+        return `<div class="p-3 rounded-xl border border-slate-100 bg-slate-50/80"><div class="flex items-center justify-between gap-2 mb-1.5"><div><span class="font-bold text-xs sm:text-sm text-navy">${esc(u.name)}</span> <span class="text-[11px] text-slate-500">(${esc(u.category)})</span></div><span class="px-2 py-0.5 rounded-full text-[11px] font-bold ${st.c}">${st.t}</span></div><div class="w-full bg-slate-200 rounded-full h-2"><div class="${st.b} h-2 rounded-full" style="width:${pct}%"></div></div><div class="flex justify-between text-[11px] text-slate-500 mt-1.5"><span>Current: <strong class="text-navy">HM ${esc(cHm)}</strong></span><span>${rem} (Next: ${esc(u.nextService)})</span></div></div>`;
+      }).join('');
+      document.getElementById('kpiServiceAlert').textContent = alerts + ' Unit';
+    }
+
+    function renderPengawasDashboard() {
+      const refEl = document.getElementById('reportRefDate');
+      if (!refEl.value) refEl.value = getTodayISO();
+      const rv = refEl.value;
+      document.getElementById('periodLabelText').textContent = { harian: `Harian (${rv})`, mingguan: `Mingguan (7 Hari s/d ${rv})`, bulanan: `Bulanan (${rv.slice(0,7)})`, semua: 'Semua Riwayat' }[currentReportPeriod];
+      const mekF = db.mekanikLogs.filter(x => isInPeriod(x.timestamp));
+      const elkF = db.elektrikLogs.filter(x => isInPeriod(x.timestamp));
+      const logF = db.logisticLogs.filter(x => isInPeriod(x.timestamp));
+
+      const rdy = db.units.filter(u => u.status === 'Ready').length;
+      document.getElementById('kpiPaPercent').textContent = (db.units.length ? Math.round((rdy / db.units.length) * 100) : 0) + '%';
+      document.getElementById('kpiUnitReady').textContent = `(${rdy}/${db.units.length})`;
+      document.getElementById('kpiUnitBreakdown').textContent = `${db.units.length - rdy} Tidak Ready`;
+      document.getElementById('kpiTotalFuel').textContent = mekF.reduce((s, i) => s + Number(i.fuel || 0), 0).toLocaleString('id-ID') + ' L';
+      document.getElementById('kpiTotalKwh').textContent = mekF.reduce((s, i) => getCat(i) === 'Genset' ? s + Number(i.kwh || 0) : s, 0).toLocaleString('id-ID');
+      document.getElementById('kpiTotalMaint').textContent = mekF.length + elkF.length;
+      document.getElementById('kpiTotalLogisticText').textContent = logF.length + ' Transaksi Logistic';
+
+      renderPengawasCharts(mekF, elkF, logF);
+      renderServiceHealthMonitor();
+
+      document.getElementById('pengawasServiceSummaryTable').innerHTML = db.units.length ? db.units.map(u => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 font-semibold text-navy">${esc(u.name)}</td><td class="px-3 py-2.5">${esc(u.category)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded-full text-xs font-bold ${u.status==='Ready'?'bg-saga-soft text-saga':'bg-red-100 text-red-700'}">${esc(u.status)}</span></td><td class="px-3 py-2.5 font-mono">${esc(u.currentHm)}</td><td class="px-3 py-2.5">${esc(u.lastService)}</td><td class="px-3 py-2.5 font-semibold text-navy">${esc(u.nextService)}</td><td class="px-3 py-2.5 text-slate-600">${esc(u.remarks||'-')}</td></tr>`).join('') : '<tr><td colspan="7" class="px-3 py-4 text-center text-slate-400">Belum ada unit.</td></tr>';
+      document.getElementById('pengawasMekanikTable').innerHTML = mekF.length ? mekF.slice().reverse().map(m => { const c = getCat(m); return `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(m.timestamp)}</td><td class="px-3 py-2.5">${esc(m.operatorName)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-xs font-bold ${c==='Genset'?'bg-saga-soft text-saga':'bg-slate-200 text-navy'}">${esc(c)}</span></td><td class="px-3 py-2.5 font-semibold text-navy">${esc(m.unitName)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 text-xs font-semibold">${esc(m.jenis)}</span></td><td class="px-3 py-2.5 font-mono">${esc(m.hm)}</td><td class="px-3 py-2.5 font-mono">${fmtKwh(m)}</td><td class="px-3 py-2.5 font-mono">${esc(m.fuel)}</td><td class="px-3 py-2.5">${esc(m.detail)}</td></tr>`; }).join('') : '<tr><td colspan="9" class="px-3 py-4 text-center text-slate-400">Tidak ada data mekanik.</td></tr>';
+      document.getElementById('pengawasElektrikTable').innerHTML = elkF.length ? elkF.slice().reverse().map(e => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(e.timestamp)}</td><td class="px-3 py-2.5">${esc(e.operatorName)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-saga-soft text-saga text-xs font-bold">${esc(e.category||'AC')}</span></td><td class="px-3 py-2.5 font-semibold text-navy">${esc(e.unitAc)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 text-xs font-semibold">${esc(e.action)}</span></td><td class="px-3 py-2.5">${esc(e.detail)}</td></tr>`).join('') : '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">Tidak ada data elektrik.</td></tr>';
+      document.getElementById('pengawasLogisticTable').innerHTML = logF.length ? logF.slice().reverse().map(l => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(l.timestamp)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-xs font-bold ${l.type==='Barang Masuk'?'bg-saga-soft text-saga':'bg-blue-50 text-navy'}">${esc(l.type)}</span></td><td class="px-3 py-2.5">${esc(l.petugas)}</td><td class="px-3 py-2.5 font-medium">${esc(l.person)}</td><td class="px-3 py-2.5"><ul class="list-disc list-inside text-xs">${l.items.map(i=>`<li><strong>${esc(i.name)}</strong> (${esc(i.qty)})</li>`).join('')}</ul></td><td class="px-3 py-2.5">${l.photo?`<button onclick="openPhotoModal('${l.id}')" class="text-xs font-semibold text-navy underline">Lihat Foto</button>`:'<span class="text-xs text-slate-400">Tanpa foto</span>'}</td></tr>`).join('') : '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">Tidak ada data logistic.</td></tr>';
+    }
+
+    function exportReportCSV() {
+      const mekF = db.mekanikLogs.filter(x => isInPeriod(x.timestamp));
+      const elkF = db.elektrikLogs.filter(x => isInPeriod(x.timestamp));
+      const logF = db.logisticLogs.filter(x => isInPeriod(x.timestamp));
+      let rows = [['Divisi','Tanggal & Waktu','Petugas','Kategori','Unit/Lokasi','Aktivitas','HM','KWH','Fuel(L)','Keterangan']];
+      mekF.forEach(m => rows.push(['Mekanik', fmtDT(m.timestamp), m.operatorName, getCat(m), m.unitName, m.jenis, m.hm, getCat(m)==='Alat Berat'||m.kwh==null?'-':m.kwh, m.fuel, m.detail]));
+      elkF.forEach(e => rows.push(['Elektrik', fmtDT(e.timestamp), e.operatorName, e.category||'AC', e.unitAc, e.action, '-', '-', '-', e.detail]));
+      logF.forEach(l => rows.push(['Logistic', fmtDT(l.timestamp), l.petugas, 'Logistic', l.person, l.type, '-', '-', '-', l.items.map(i=>`${i.name} (${i.qty})`).join('; ')]));
+      const csv = '\uFEFF' + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+      a.download = `Laporan_Muliabara_${currentReportPeriod}_${getTodayISO()}.csv`; a.click();
+      showToast('Laporan CSV berhasil diunduh.');
+    }
+
+    function renderManageUnits() {
+      document.getElementById('manageUnitTable').innerHTML = db.units.length ? db.units.map(u => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 font-semibold text-navy">${esc(u.name)}</td><td class="px-3 py-2.5">${esc(u.category)}</td><td class="px-3 py-2.5"><button onclick="toggleUnitStatus('${u.id}')" class="px-2.5 py-1 rounded-full text-xs font-bold ${u.status==='Ready'?'bg-saga-soft text-saga':'bg-red-100 text-red-700'}">${esc(u.status)} ↻</button></td><td class="px-3 py-2.5 font-mono">${esc(u.currentHm)}</td><td class="px-3 py-2.5">${esc(u.lastService)}</td><td class="px-3 py-2.5 font-semibold text-navy">${esc(u.nextService)}</td><td class="px-3 py-2.5 text-slate-600">${esc(u.remarks||'-')}</td><td class="px-3 py-2.5 text-right space-x-2"><button onclick="editUnit('${u.id}')" class="text-xs font-semibold text-navy underline">Edit</button><button onclick="deleteUnit('${u.id}')" class="text-xs font-semibold text-red-600 hover:underline">Hapus</button></td></tr>`).join('') : '<tr><td colspan="8" class="px-3 py-4 text-center text-slate-400">Belum ada unit.</td></tr>';
+    }
+
+    async function saveUnit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('saveUnitBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const editId = document.getElementById('editUnitId').value;
+        const u = { id: editId || 'U_' + Date.now(), name: document.getElementById('unitName').value.trim(), category: document.getElementById('unitCategory').value, status: document.getElementById('unitStatus').value, currentHm: Number(document.getElementById('unitCurrentHm').value), lastService: document.getElementById('unitLastService').value.trim(), nextService: document.getElementById('unitNextService').value.trim(), remarks: document.getElementById('unitRemarks').value.trim() };
+        if (isSupabaseConfigured) {
+          const { error } = await sbClient.from('units').upsert({ id: u.id, name: u.name, category: u.category, status: u.status, current_hm: u.currentHm, last_service: u.lastService, next_service: u.nextService, remarks: u.remarks });
+          if (error) return showToast('Gagal menyimpan unit ke Supabase.');
+        }
+        if (editId) { const i = db.units.findIndex(x => x.id === editId); if (i !== -1) db.units[i] = u; showToast('Unit diperbarui.'); }
+        else { db.units.push(u); showToast('Unit ditambahkan.'); }
+        if (!isSupabaseConfigured) saveLocalDB();
+        resetUnitForm(); renderManageUnits(); renderPengawasDashboard();
+      } finally { btn.disabled = false; btn.textContent = 'Simpan Unit'; }
+    }
+
+    function editUnit(id) {
+      const u = db.units.find(x => x.id === id); if (!u) return;
+      document.getElementById('editUnitId').value = u.id;
+      document.getElementById('unitFormTitle').textContent = 'Edit Unit: ' + u.name;
+      document.getElementById('unitName').value = u.name; document.getElementById('unitCategory').value = u.category;
+      document.getElementById('unitStatus').value = u.status; document.getElementById('unitCurrentHm').value = u.currentHm;
+      document.getElementById('unitLastService').value = u.lastService; document.getElementById('unitNextService').value = u.nextService;
+      document.getElementById('unitRemarks').value = u.remarks; window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetUnitForm() {
+      ['editUnitId','unitName','unitCurrentHm','unitLastService','unitNextService','unitRemarks'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('unitFormTitle').textContent = 'Tambah Genset / Unit Alat Berat Baru';
+    }
+
+    async function toggleUnitStatus(id) {
+      const u = db.units.find(x => x.id === id); if (!u) return;
+      const ns = u.status === 'Ready' ? 'Tidak Ready' : 'Ready';
+      if (isSupabaseConfigured) { const { error } = await sbClient.from('units').update({ status: ns }).eq('id', id); if (error) return showToast('Gagal update Supabase.'); }
+      u.status = ns; if (!isSupabaseConfigured) saveLocalDB();
+      renderManageUnits(); renderPengawasDashboard(); showToast(`Status ${u.name}: ${ns}`);
+    }
+
+    async function deleteUnit(id) {
+      if (!confirm('Yakin hapus unit ini?')) return;
+      if (isSupabaseConfigured) { const { error } = await sbClient.from('units').delete().eq('id', id); if (error) return showToast('Gagal hapus unit.'); }
+      db.units = db.units.filter(x => x.id !== id); if (!isSupabaseConfigured) saveLocalDB();
+      renderManageUnits(); renderPengawasDashboard(); showToast('Unit dihapus.');
+    }
+
+    function generateCredentials() {
+      const r = document.getElementById('newUserRole').value;
+      const p = { 'Operator Mekanik': 'MEK', 'Operator Elektrik': 'ELK', 'Logistic': 'LOG', 'Pengawas': 'PGW' }[r] || 'USR';
+      document.getElementById('newUserId').value = p + Math.floor(10 + Math.random() * 89);
+      document.getElementById('newUserPass').value = String(Math.floor(100000 + Math.random() * 899999));
+    }
+
+    async function addUserAccount(e) {
+      e.preventDefault();
+      const btn = document.getElementById('addUserBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const name = document.getElementById('newUserName').value.trim(), role = document.getElementById('newUserRole').value;
+        const id = document.getElementById('newUserId').value.trim().toUpperCase(), password = document.getElementById('newUserPass').value.trim();
+        if (db.users.some(u => u.id.toUpperCase() === id)) return alert('User ID sudah dipakai.');
+        if (isSupabaseConfigured) { const { error } = await sbClient.from('app_users').insert({ id, password, name, role }); if (error) return showToast('Gagal simpan akun.'); }
+        db.users.push({ id, password, name, role }); if (!isSupabaseConfigured) saveLocalDB();
+        renderManageUsers(); ['newUserName','newUserId','newUserPass'].forEach(x => document.getElementById(x).value = '');
+        showToast(`Akun ${name} (${id}) dibuat.`);
+      } finally { btn.disabled = false; btn.textContent = 'Buat Akun & Berikan ID/Password'; }
+    }
+
+    async function deleteUser(id) {
+      if (currentUser && currentUser.id === id) return alert('Tidak bisa hapus akun yang sedang aktif.');
+      if (!confirm('Hapus akun ' + id + '?')) return;
+      if (isSupabaseConfigured) { const { error } = await sbClient.from('app_users').delete().eq('id', id); if (error) return showToast('Gagal hapus akun.'); }
+      db.users = db.users.filter(u => u.id !== id); if (!isSupabaseConfigured) saveLocalDB();
+      renderManageUsers(); showToast('Akun dihapus.');
+    }
+
+    function renderManageUsers() {
+      document.getElementById('manageUsersTable').innerHTML = db.users.map(u => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 font-semibold">${esc(u.name)}</td><td class="px-3 py-2.5">${esc(u.role)}</td><td class="px-3 py-2.5 font-mono font-bold text-navy">${esc(u.id)}</td><td class="px-3 py-2.5 font-mono text-slate-600">${esc(u.password)}</td><td class="px-3 py-2.5 text-right"><button onclick="deleteUser('${u.id}')" class="text-xs font-semibold text-red-600 hover:underline">Hapus</button></td></tr>`).join('');
+    }
+
+    function setMekCategory(cat) {
+      selectedMekCategory = cat;
+      const act = 'py-3 px-4 rounded-xl border-2 font-bold text-sm transition bg-navy text-[#82c341] border-navy shadow';
+      const inact = 'py-3 px-4 rounded-xl border-2 font-bold text-sm transition bg-white text-slate-700 border-slate-300';
+      document.getElementById('btnCatGenset').className = cat === 'Genset' ? act : inact;
+      document.getElementById('btnCatAlatBerat').className = cat === 'Alat Berat' ? act : inact;
+      document.getElementById('mekUnitLabel').textContent = `2. Pilih Unit ${cat}`;
+      const kw = document.getElementById('mekKwhWrapper'), ki = document.getElementById('mekKwh');
+      if (cat === 'Genset') { kw.classList.remove('hidden'); ki.required = true; }
+      else { kw.classList.add('hidden'); ki.required = false; ki.value = ''; }
+      const fu = db.units.filter(u => u.category === cat);
+      document.getElementById('mekUnitSelect').innerHTML = fu.length ? fu.map(u => `<option value="${u.id}">${esc(u.name)} (${esc(u.status)} - HM ${esc(u.currentHm)})</option>`).join('') : `<option value="">-- Belum ada unit ${esc(cat)} --</option>`;
+      const opts = cat === 'Genset' ? ['P2H','Perawatan Harian','Service Berkala','Perbaikan / Trouble'] : ['Perawatan Harian','Service Berkala','Perbaikan / Trouble'];
+      document.getElementById('mekJenis').innerHTML = opts.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
+    }
+
+    async function submitMekanikReport(e) {
+      e.preventDefault();
+      const unitId = document.getElementById('mekUnitSelect').value;
+      if (!unitId) return alert(`Belum ada unit ${selectedMekCategory}.`);
+      const btn = document.getElementById('mekSubmitBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const unit = db.units.find(u => u.id === unitId);
+        const hm = Number(document.getElementById('mekHm').value), kwh = selectedMekCategory === 'Genset' ? Number(document.getElementById('mekKwh').value) : null;
+        const fuel = Number(document.getElementById('mekFuel').value), jenis = document.getElementById('mekJenis').value, detail = document.getElementById('mekDetail').value.trim();
+        const upd = document.getElementById('mekUpdateLastService').checked || jenis === 'Service Berkala';
+        const entry = { id: 'M_' + Date.now(), timestamp: new Date().toISOString(), operatorName: currentUser.name, unitId, unitCategory: selectedMekCategory, unitName: unit ? unit.name : '-', jenis, hm, kwh, fuel, detail };
+        const nls = `${getTodayISO()} (HM ${hm})`;
+        if (isSupabaseConfigured) {
+          const { error } = await sbClient.from('mekanik_logs').insert({ id: entry.id, timestamp: entry.timestamp, operator_name: entry.operatorName, unit_id: entry.unitId, unit_category: entry.unitCategory, unit_name: entry.unitName, jenis: entry.jenis, hm: entry.hm, kwh: entry.kwh, fuel: entry.fuel, detail: entry.detail });
+          if (error) return showToast('Gagal menyimpan laporan.');
+          if (unit) { const p = { current_hm: hm }; if (upd) p.last_service = nls; await sbClient.from('units').update(p).eq('id', unit.id); }
+        }
+        if (unit) { unit.currentHm = hm; if (upd) unit.lastService = nls; }
+        db.mekanikLogs.push(entry); if (!isSupabaseConfigured) saveLocalDB();
+        ['mekHm','mekKwh','mekFuel','mekDetail'].forEach(x => document.getElementById(x).value = '');
+        document.getElementById('mekUpdateLastService').checked = false;
+        setMekCategory(selectedMekCategory); renderMekanikHistory(); showToast('Laporan Mekanik tersimpan.');
+      } finally { btn.disabled = false; btn.textContent = 'Kirim Laporan Mekanik'; }
+    }
+
+    function renderMekanikHistory() {
+      const l = db.mekanikLogs.slice().reverse();
+      document.getElementById('mekHistoryTable').innerHTML = l.length ? l.map(m => { const c = getCat(m); return `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(m.timestamp)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-xs font-bold ${c==='Genset'?'bg-saga-soft text-saga':'bg-slate-200 text-navy'}">${esc(c)}</span></td><td class="px-3 py-2.5 font-semibold text-navy">${esc(m.unitName)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-slate-100 text-xs font-semibold">${esc(m.jenis)}</span></td><td class="px-3 py-2.5 text-xs font-mono">HM: ${esc(m.hm)}${c==='Alat Berat'?'':` | KWH: ${esc(m.kwh)}`} | Fuel: ${esc(m.fuel)} L</td><td class="px-3 py-2.5">${esc(m.detail)}</td></tr>`; }).join('') : '<tr><td colspan="6" class="px-3 py-4 text-center text-slate-400">Belum ada riwayat.</td></tr>';
+    }
+
+    function updateElektrikPlaceholder() {
+      const p = { 'AC': 'cth: AC Ruang Kontrol Plant', 'Lampu': 'cth: Lampu Sorot Pit #1', 'Unit': 'cth: Alternator Genset #1', 'Komponen Lainnya': 'cth: Panel MCB / Kontaktor' };
+      document.getElementById('elkUnit').placeholder = p[document.getElementById('elkCategory').value] || 'Lokasi / Komponen';
+    }
+
+    async function submitElektrikReport(e) {
+      e.preventDefault();
+      const btn = document.getElementById('elkSubmitBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const entry = { id: 'E_' + Date.now(), timestamp: new Date().toISOString(), operatorName: currentUser.name, category: document.getElementById('elkCategory').value, unitAc: document.getElementById('elkUnit').value.trim(), action: document.getElementById('elkAction').value, detail: document.getElementById('elkDetail').value.trim() };
+        if (isSupabaseConfigured) { const { error } = await sbClient.from('elektrik_logs').insert({ id: entry.id, timestamp: entry.timestamp, operator_name: entry.operatorName, category: entry.category, target_name: entry.unitAc, action: entry.action, detail: entry.detail }); if (error) return showToast('Gagal simpan.'); }
+        db.elektrikLogs.push(entry); if (!isSupabaseConfigured) saveLocalDB();
+        document.getElementById('elkUnit').value = ''; document.getElementById('elkDetail').value = '';
+        renderElektrikHistory(); showToast('Laporan Elektrik tersimpan.');
+      } finally { btn.disabled = false; btn.textContent = 'Kirim Laporan Elektrik'; }
+    }
+
+    function renderElektrikHistory() {
+      const l = db.elektrikLogs.slice().reverse();
+      document.getElementById('elkHistoryTable').innerHTML = l.length ? l.map(e => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(e.timestamp)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-saga-soft text-saga text-xs font-bold">${esc(e.category||'AC')}</span></td><td class="px-3 py-2.5 font-semibold text-navy">${esc(e.unitAc)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 text-xs font-semibold">${esc(e.action)}</span></td><td class="px-3 py-2.5">${esc(e.detail)}</td></tr>`).join('') : '<tr><td colspan="5" class="px-3 py-4 text-center text-slate-400">Belum ada riwayat.</td></tr>';
+    }
+
+    function toggleLogisticLabel() {
+      const bm = document.getElementById('logType').value === 'Barang Masuk';
+      document.getElementById('logPersonLabel').textContent = bm ? 'Nama Pengirim / Supplier / Penerima' : 'Nama Pengambil Barang';
+      document.getElementById('logPerson').placeholder = bm ? 'cth: PT Sumber Sparepart' : 'cth: Ahmad (Mekanik)';
+    }
+
+    function resetLogisticItems() { document.getElementById('logisticItemsContainer').innerHTML = ''; addLogisticItemRow(); }
+
+    function addLogisticItemRow() {
+      const r = document.createElement('div'); r.className = 'grid grid-cols-12 gap-2 items-center logistic-item-row';
+      r.innerHTML = `<div class="col-span-7"><input type="text" required placeholder="Nama Barang" class="log-item-name w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white" /></div><div class="col-span-4"><input type="text" required placeholder="Qty (cth: 2 Pcs)" class="log-item-qty w-full px-3 py-2 rounded-lg border border-slate-300 text-sm bg-white" /></div><div class="col-span-1 text-right"><button type="button" onclick="removeLogisticRow(this)" class="text-red-500 font-bold text-lg px-2">&times;</button></div>`;
+      document.getElementById('logisticItemsContainer').appendChild(r);
+    }
+
+    function removeLogisticRow(btn) {
+      if (document.querySelectorAll('.logistic-item-row').length <= 1) return showToast('Minimal 1 baris barang.');
+      btn.closest('.logistic-item-row').remove();
+    }
+
+    function previewLogisticPhoto(e) {
+      const f = e.target.files[0];
+      if (!f) { currentPhotoBase64 = ''; currentPhotoBlob = null; document.getElementById('logPhotoPreviewWrap').classList.add('hidden'); return; }
+      if (!f.type.startsWith('image/')) { showToast('Harus file gambar.'); e.target.value = ''; return; }
+      const rd = new FileReader();
+      rd.onload = ev => {
+        const img = new Image();
+        img.onerror = () => showToast('Gambar tidak valid.');
+        img.onload = () => {
+          const c = document.createElement('canvas'), sc = Math.min(1, 600 / img.width);
+          c.width = img.width * sc; c.height = img.height * sc;
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          currentPhotoBase64 = c.toDataURL('image/jpeg', 0.55);
+          c.toBlob(b => currentPhotoBlob = b, 'image/jpeg', 0.65);
+          document.getElementById('logPhotoPreview').src = currentPhotoBase64;
+          document.getElementById('logPhotoPreviewWrap').classList.remove('hidden');
+        };
+        img.src = ev.target.result;
+      };
+      rd.readAsDataURL(f);
+    }
+
+    async function submitLogisticReport(e) {
+      e.preventDefault();
+      const items = [];
+      document.querySelectorAll('.logistic-item-row').forEach(r => {
+        const n = r.querySelector('.log-item-name').value.trim(), q = r.querySelector('.log-item-qty').value.trim();
+        if (n && q) items.push({ name: n, qty: q });
+      });
+      if (!items.length) return alert('Minimal 1 barang.');
+      const btn = document.getElementById('logSubmitBtn'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        const id = 'L_' + Date.now();
+        let photo = currentPhotoBase64;
+        if (isSupabaseConfigured && currentPhotoBlob) {
+          try {
+            const fn = `bukti_${id}.jpg`;
+            const { error: ue } = await sbClient.storage.from('logistic-photos').upload(fn, currentPhotoBlob, { contentType: 'image/jpeg' });
+            if (!ue) { const { data } = sbClient.storage.from('logistic-photos').getPublicUrl(fn); if (data?.publicUrl) photo = data.publicUrl; }
+          } catch {}
+        }
+        const entry = { id, timestamp: new Date().toISOString(), petugas: currentUser.name, type: document.getElementById('logType').value, person: document.getElementById('logPerson').value.trim(), items, photo };
+        if (isSupabaseConfigured) { const { error } = await sbClient.from('logistic_logs').insert({ id: entry.id, timestamp: entry.timestamp, petugas: entry.petugas, type: entry.type, person: entry.person, items: entry.items, photo: entry.photo }); if (error) return showToast('Gagal simpan logistic.'); }
+        db.logisticLogs.push(entry); if (!isSupabaseConfigured) saveLocalDB();
+        document.getElementById('logPerson').value = ''; document.getElementById('logPhotoInput').value = '';
+        document.getElementById('logPhotoPreviewWrap').classList.add('hidden');
+        currentPhotoBase64 = ''; currentPhotoBlob = null; resetLogisticItems(); renderLogisticHistory();
+        showToast('Transaksi Logistic tersimpan.');
+      } finally { btn.disabled = false; btn.textContent = 'Simpan Transaksi Logistic'; }
+    }
+
+    function renderLogisticHistory() {
+      const l = db.logisticLogs.slice().reverse();
+      document.getElementById('logHistoryTable').innerHTML = l.length ? l.map(x => `<tr class="hover:bg-slate-50"><td class="px-3 py-2.5 text-xs text-slate-500 whitespace-nowrap">${fmtDT(x.timestamp)}</td><td class="px-3 py-2.5"><span class="px-2 py-0.5 rounded text-xs font-bold ${x.type==='Barang Masuk'?'bg-saga-soft text-saga':'bg-blue-50 text-navy'}">${esc(x.type)}</span></td><td class="px-3 py-2.5 font-medium">${esc(x.person)}</td><td class="px-3 py-2.5"><ul class="list-disc list-inside text-xs">${x.items.map(i=>`<li><strong>${esc(i.name)}</strong> (${esc(i.qty)})</li>`).join('')}</ul></td><td class="px-3 py-2.5">${x.photo?`<button onclick="openPhotoModal('${x.id}')" class="text-xs font-semibold text-navy underline">Lihat Foto</button>`:'<span class="text-xs text-slate-400">Tanpa foto</span>'}</td></tr>`).join('') : '<tr><td colspan="5" class="px-3 py-4 text-center text-slate-400">Belum ada transaksi.</td></tr>';
+    }
+
+    function openPhotoModal(id) {
+      const log = db.logisticLogs.find(x => x.id === id);
+      if (!log || !log.photo) return;
+      document.getElementById('modalPhotoImg').src = log.photo;
+      document.getElementById('modalPhotoCaption').textContent = `${log.type} - ${log.person} (${fmtDT(log.timestamp)})`;
+      document.getElementById('photoModal').classList.remove('hidden');
+    }
+    function closePhotoModal() { document.getElementById('photoModal').classList.add('hidden'); }
+
+    loadAllData();
+  </script>
+</body>
+</html>
